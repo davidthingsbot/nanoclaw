@@ -459,6 +459,14 @@ async function buildContainerArgs(
     throw new Error('OneCLI gateway not applied — refusing to spawn container without credentials');
   }
   log.info('OneCLI gateway applied', { containerName });
+  // Supplemental CA-trust env vars for tools the SDK doesn't cover.
+  // Without GIT_SSL_CAINFO, git uses libcurl-gnutls and rejects the gateway's
+  // re-signed cert with "server certificate verification failed".
+  const caPath = '/tmp/onecli-gateway-ca.pem';
+  args.push('-e', `GIT_SSL_CAINFO=${caPath}`);
+  args.push('-e', `REQUESTS_CA_BUNDLE=${caPath}`);
+  args.push('-e', `CURL_CA_BUNDLE=${caPath}`);
+  args.push('-e', 'GH_TOKEN=placeholder');
 
   // Host gateway
   args.push(...hostGatewayArgs());
