@@ -11,7 +11,12 @@ store/
 data/
 logs/
 
-# Groups - per-installation state, not tracked
+# Groups - per-installation state, not tracked.
+# Exception: groups/global/CLAUDE.md and groups/main/CLAUDE.md are tracked as
+# seed templates for fresh installs. They diverge per-install at runtime
+# (assistant-name substitution, local customization). On each install run:
+#   git update-index --skip-worktree groups/global/CLAUDE.md groups/main/CLAUDE.md
+# so local edits don't show as diffs without losing the seed content upstream.
 groups/*
 
 # Composer-managed CLAUDE.md artifacts (regenerated every spawn) and
