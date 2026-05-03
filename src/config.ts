@@ -6,7 +6,14 @@ import { getContainerImageBase, getDefaultContainerImage, getInstallSlug } from 
 import { isValidTimezone } from './timezone.js';
 
 // Read config values from .env (falls back to process.env).
-const envConfig = readEnvFile(['ASSISTANT_NAME', 'ASSISTANT_HAS_OWN_NUMBER', 'ONECLI_URL', 'ONECLI_API_KEY', 'TZ']);
+const envConfig = readEnvFile([
+  'ASSISTANT_NAME',
+  'ASSISTANT_HAS_OWN_NUMBER',
+  'ONECLI_URL',
+  'ONECLI_API_KEY',
+  'TZ',
+  'NANOCLAW_CONFIG_DIR',
+]);
 
 export const ASSISTANT_NAME = process.env.ASSISTANT_NAME || envConfig.ASSISTANT_NAME || 'Andy';
 export const ASSISTANT_HAS_OWN_NUMBER =
@@ -16,9 +23,19 @@ export const ASSISTANT_HAS_OWN_NUMBER =
 const PROJECT_ROOT = process.cwd();
 const HOME_DIR = process.env.HOME || os.homedir();
 
+// Per-install config dir for mount/sender allowlists. Defaults to a slug-derived
+// path so multiple installs on one host don't collide on a shared
+// `~/.config/nanoclaw/`. Override with NANOCLAW_CONFIG_DIR (env or .env) for a
+// readable name. Mirrors the slug-derivation already used for the systemd unit,
+// launchd label, and container image base in `install-slug.ts`.
+const CONFIG_DIR =
+  process.env.NANOCLAW_CONFIG_DIR ||
+  envConfig.NANOCLAW_CONFIG_DIR ||
+  path.join(HOME_DIR, '.config', `nanoclaw-v2-${getInstallSlug(PROJECT_ROOT)}`);
+
 // Mount security: allowlist stored OUTSIDE project root, never mounted into containers
-export const MOUNT_ALLOWLIST_PATH = path.join(HOME_DIR, '.config', 'nanoclaw', 'mount-allowlist.json');
-export const SENDER_ALLOWLIST_PATH = path.join(HOME_DIR, '.config', 'nanoclaw', 'sender-allowlist.json');
+export const MOUNT_ALLOWLIST_PATH = path.join(CONFIG_DIR, 'mount-allowlist.json');
+export const SENDER_ALLOWLIST_PATH = path.join(CONFIG_DIR, 'sender-allowlist.json');
 export const STORE_DIR = path.resolve(PROJECT_ROOT, 'store');
 export const GROUPS_DIR = path.resolve(PROJECT_ROOT, 'groups');
 export const DATA_DIR = path.resolve(PROJECT_ROOT, 'data');
